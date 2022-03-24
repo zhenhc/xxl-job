@@ -19,7 +19,8 @@ public class JacksonUtilTest {
 
         //when
         String json = writeValueAsString(map);
-
+        System.out.println(map);
+        System.out.println(json);
         //then
         assertEquals(json, "{\"aaa\":\"111\",\"bbb\":\"222\"}");
     }
