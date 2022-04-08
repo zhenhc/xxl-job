@@ -1,15 +1,21 @@
 package com.xxl.job.admin.controller;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONUtil;
 import com.xxl.job.admin.service.LoginService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Marker;
 import redis.clients.jedis.Jedis;
 
+import java.io.File;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +24,7 @@ import java.util.Map;
  * @author : zhenhc
  * @date : 2022-03-27 23:54
  **/
+@Slf4j
 public class ControllerTest {
 
     private Jedis jedis;
@@ -66,7 +73,7 @@ public class ControllerTest {
     }
 
     @Test
-    public void pageListTest(){
+    public void jobInfoPageListTest(){
         Map<String,Object> map = new HashMap();
         map.put("jobGroup",1);
         map.put("triggerStatus",-1);
@@ -76,5 +83,38 @@ public class ControllerTest {
                 .execute()
                 .body();
         System.out.println(body);
+    }
+
+    @Test
+    public void chartInfoTest(){
+        String body = HttpRequest.post("http://localhost:8080/xxl-job-admin/chartInfo")
+                .cookie(cookie)
+                .execute()
+                .body();
+        System.out.println(body);
+    }
+
+    @Test
+    public void jobLogPageListTest(){
+        Map<String,Object> map = new HashMap();
+        map.put("jobGroup",0);
+        map.put("jobId",0);
+        map.put("logStatus",-1);
+        String body = HttpRequest.post("http://localhost:8080/xxl-job-admin/joblog/pageList")
+                .cookie(cookie)
+                .form(map)
+                .execute()
+                .body();
+        System.out.println(body);
+        FileUtil.writeString(body,new File("doc/json/jobLog.json"), Charset.defaultCharset());
+
+    }
+
+    @Test
+    public void test1(){
+        File file = new File("doc");
+        String absolutePath = file.getAbsolutePath();
+        System.out.println(absolutePath);
+        System.out.println(System.getProperty("user.dir"));
     }
 }
