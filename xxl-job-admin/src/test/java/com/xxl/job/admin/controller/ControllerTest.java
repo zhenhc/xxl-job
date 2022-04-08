@@ -3,7 +3,10 @@ package com.xxl.job.admin.controller;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONUtil;
+import com.xxl.job.admin.service.LoginService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import redis.clients.jedis.Jedis;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,6 +20,14 @@ import java.util.Map;
  **/
 public class ControllerTest {
 
+    private Jedis jedis;
+    private String cookie;
+
+    @BeforeEach
+    private void init(){
+        jedis = new Jedis("10.3.24.133");
+        cookie = jedis.get(LoginService.REDIS_COOKIE);
+    }
     @Test
     public void test(){
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
@@ -49,6 +60,19 @@ public class ControllerTest {
         String body = HttpRequest.post("http://localhost:8080/xxl-job-admin/login")
                 .form("userName","admin")
                 .form("password","123456")
+                .execute()
+                .body();
+        System.out.println(body);
+    }
+
+    @Test
+    public void pageListTest(){
+        Map<String,Object> map = new HashMap();
+        map.put("jobGroup",1);
+        map.put("triggerStatus",-1);
+        String body = HttpRequest.post("http://localhost:8080/xxl-job-admin/jobinfo/pageList")
+                .cookie(cookie)
+                .form(map)
                 .execute()
                 .body();
         System.out.println(body);

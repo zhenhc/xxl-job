@@ -67,6 +67,8 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
     @Value("${xxl.job.logretentiondays}")
     private int logretentiondays;
 
+    @Value("${spring.redis.host}")
+    private String redisHost;
     // dao, service
 
     @Resource
@@ -123,6 +125,9 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
         return logretentiondays;
     }
 
+    public String getRedisHost(){
+        return redisHost;
+    }
     public XxlJobLogDao getXxlJobLogDao() {
         return xxlJobLogDao;
     }

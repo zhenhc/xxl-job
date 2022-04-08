@@ -1,13 +1,17 @@
 package com.xxl.job.admin.service;
 
+import cn.hutool.json.JSONUtil;
+import com.xxl.job.admin.core.conf.XxlJobAdminConfig;
 import com.xxl.job.admin.core.model.XxlJobUser;
 import com.xxl.job.admin.core.util.CookieUtil;
 import com.xxl.job.admin.core.util.I18nUtil;
 import com.xxl.job.admin.core.util.JacksonUtil;
 import com.xxl.job.admin.dao.XxlJobUserDao;
 import com.xxl.job.core.biz.model.ReturnT;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.DigestUtils;
+import redis.clients.jedis.Jedis;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -21,10 +25,9 @@ import java.math.BigInteger;
 public class LoginService {
 
     public static final String LOGIN_IDENTITY_KEY = "XXL_JOB_LOGIN_IDENTITY";
-
+    public static final String REDIS_COOKIE = "xxl-job:cookie";
     @Resource
     private XxlJobUserDao xxlJobUserDao;
-
 
     private String makeToken(XxlJobUser xxlJobUser){
         String tokenJson = JacksonUtil.writeValueAsString(xxlJobUser);
@@ -62,6 +65,8 @@ public class LoginService {
 
         // do login
         CookieUtil.set(response, LOGIN_IDENTITY_KEY, loginToken, ifRemember);
+        Jedis jedis = new Jedis(XxlJobAdminConfig.getAdminConfig().getRedisHost());
+        jedis.set(REDIS_COOKIE,LOGIN_IDENTITY_KEY+"="+loginToken);
         return ReturnT.SUCCESS;
     }
 

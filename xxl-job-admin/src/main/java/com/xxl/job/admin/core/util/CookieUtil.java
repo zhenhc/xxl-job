@@ -1,5 +1,7 @@
 package com.xxl.job.admin.core.util;
 
+import cn.hutool.json.JSONUtil;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
