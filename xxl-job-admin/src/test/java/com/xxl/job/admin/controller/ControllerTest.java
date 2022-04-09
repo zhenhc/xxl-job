@@ -1,24 +1,33 @@
 package com.xxl.job.admin.controller;
 
+import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.resource.Resource;
+import cn.hutool.core.io.resource.ResourceUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.xxl.job.admin.core.model.XxlJobInfo;
 import com.xxl.job.admin.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Marker;
 import redis.clients.jedis.Jedis;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author : zhenhc
@@ -32,7 +41,16 @@ public class ControllerTest {
 
     @BeforeEach
     private void init(){
-        jedis = new Jedis("10.3.24.133");
+        Resource resourceObj = ResourceUtil.getResourceObj("application.properties");
+        BufferedReader reader = resourceObj.getReader(Charset.defaultCharset());
+        Properties properties = new Properties();
+        try {
+            properties.load(reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String property = properties.getProperty("spring.redis.host");
+        jedis = new Jedis(property);
         cookie = jedis.get(LoginService.REDIS_COOKIE);
     }
     @Test
@@ -105,9 +123,17 @@ public class ControllerTest {
                 .form(map)
                 .execute()
                 .body();
-        System.out.println(body);
+        JSONObject jsonObject = JSONUtil.parseObj(body);
+        JSONArray data = jsonObject.getJSONArray("data");
+        List<Object> list = data;
+        List<Map<String, String>> collect = list.stream().map(o -> {
+            JSONObject o1 = (JSONObject) o;
+            Map<String, String> map1 = new HashMap<>();
+            map1.put("id", o1.getStr("id"));
+            return map1;
+        }).collect(Collectors.toList());
+        System.out.println(JSONUtil.toJsonStr(collect));
         FileUtil.writeString(body,new File("doc/json/jobLog.json"), Charset.defaultCharset());
-
     }
 
     @Test
@@ -116,5 +142,35 @@ public class ControllerTest {
         String absolutePath = file.getAbsolutePath();
         System.out.println(absolutePath);
         System.out.println(System.getProperty("user.dir"));
+
+        Resource resourceObj = ResourceUtil.getResourceObj("application.properties");
+        BufferedReader reader = resourceObj.getReader(Charset.defaultCharset());
+        Properties properties = new Properties();
+        try {
+            properties.load(reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String property = properties.getProperty("spring.redis.host");
+        System.out.println(property);
+    }
+
+    @Test
+    public void test2(){
+        for (int i=0;i<10;i++) {
+            DateTime dateTime = RandomUtil.randomDate(null, DateField.DAY_OF_MONTH, -1000, 1000);
+            System.out.println(dateTime);
+        }
+    }
+
+    @Test
+    public void test3(){
+        Field[] fields = ReflectUtil.getFields(XxlJobInfo.class);
+        List<String> collect = Arrays.stream(fields).map(field -> "xji_"+field.getName())
+                        .collect(Collectors.toList());
+        //System.out.println(collect);
+
+        List<String> fieldList = com.xxl.job.admin.core.util.ReflectUtil.getFieldList(XxlJobInfo.class,"xji");
+        System.out.println(fieldList);
     }
 }
